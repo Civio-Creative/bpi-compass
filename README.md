@@ -1,4 +1,5 @@
 # Compass — BPI Product Assessment
+Built as part of a product design and prototyping assessment for BPI Labs.
 
 Compass is a prototype tool that turns a campaign brief into a ranked list of media targets using policy elite engagement data.
 
