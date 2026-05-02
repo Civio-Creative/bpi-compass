@@ -12,9 +12,9 @@ export function InsightSummary({ summary }: InsightSummaryProps) {
     `${summary.totalTargets} targets surfaced. Average reach: ${summary.avgPanelReach}% of BPI's tracked audience panel and ${summary.avgGenPopReach}% of the general public. Average partisan reach: ${summary.avgDemReach}% Democratic, ${summary.avgRepReach}% Republican.`;
 
   return (
-    <div className="bg-[#15151A] rounded-lg border border-[rgba(255,255,255,0.08)] px-[22px] py-5">
-      <h2 className="text-[#E8E6F0] text-base font-medium mb-3">Insight summary</h2>
-      <p className="text-[#B4B2A9] text-sm leading-[1.7]">{text}</p>
+    <div className="bg-[#15151A] rounded-[16px] border border-[rgba(255,255,255,0.08)] p-8 shadow-[0_4px_12px_rgba(0,0,0,0.25)]">
+      <h2 className="text-[#E8E6F0] text-[28px] font-semibold mb-4">Insight summary</h2>
+      <p className="text-[#B4B2A9] text-[15px] leading-[1.7]">{text}</p>
     </div>
   );
 }

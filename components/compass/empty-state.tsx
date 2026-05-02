@@ -1,12 +1,12 @@
 'use client';
 
-import { exampleBriefs } from '@/lib/mock-data';
+import { exampleBriefs, type ExampleBrief } from '@/lib/mock-data';
 
 interface EmptyStateProps {
-  onSelectBrief: (brief: string) => void;
+  onSelectExample: (example: ExampleBrief) => void;
 }
 
-export function EmptyState({ onSelectBrief }: EmptyStateProps) {
+export function EmptyState({ onSelectExample }: EmptyStateProps) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-8 py-12">
       {/* Compass Icon */}
@@ -24,17 +24,17 @@ export function EmptyState({ onSelectBrief }: EmptyStateProps) {
       {/* Greeting */}
       <h1 className="text-[22px] font-medium text-[#E8E6F0] mb-3">Hi Sarah</h1>
       <p className="text-[#B4B2A9] text-center max-w-lg mb-8 leading-relaxed">
-        What are we working on today? Describe your campaign on the left and pick your filters to surface the highest-value targets across BPI&apos;s elite engagement data.
+        What are we working on today? Describe your campaign on the left and pick your filters to surface the highest-value targets across BPI&apos;s data library.
       </p>
 
       {/* Example Briefs Card */}
       <div className="w-full max-w-xl bg-[#15151A] rounded-lg border border-[rgba(255,255,255,0.08)] p-5">
-        <h2 className="text-[#E8E6F0] text-sm font-medium mb-4">Try a campaign brief</h2>
+        <h2 className="text-[#E8E6F0] text-sm font-medium mb-4">Or start with an example</h2>
         <div className="flex flex-col gap-3">
           {exampleBriefs.map((example, index) => (
             <button
               key={index}
-              onClick={() => onSelectBrief(example.brief)}
+              onClick={() => onSelectExample(example)}
               className="flex items-start gap-3 text-left p-3 rounded-md bg-[rgba(255,255,255,0.02)] hover:bg-[rgba(255,255,255,0.05)] transition-colors group"
             >
               <span 

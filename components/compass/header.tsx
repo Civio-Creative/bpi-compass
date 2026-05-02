@@ -35,7 +35,7 @@ export function Header({ savedSearches, onNewAnalysis, onLoadSearch, onDeleteSea
         </div>
         <span className="text-[#B4B2A9] text-sm">BPI Labs</span>
         <span className="text-[#5F5E5A] text-sm">·</span>
-        <span className="text-[#E8E6F0] text-sm font-medium">Compass</span>
+        <span className="text-[#E8E6F0] text-lg font-semibold">Compass</span>
       </div>
       
       <div className="flex items-center gap-3">

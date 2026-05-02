@@ -1,53 +1,117 @@
 import type { SearchFilters, InsightSummary } from './types';
 import { getDataset, type NormalizedTarget } from './data';
-import { matchesSubSector } from './taxonomy';
 
 export interface RankedTarget extends NormalizedTarget {
   score: number;
   rank: number;
 }
 
+export const SECTOR_ALL = 'All';
+export const TYPE_ALL = 'All types';
+
+function matchesSector(t: NormalizedTarget, sector: string): boolean {
+  const c = t.rawCategory.toLowerCase();
+  const primary = t.category.toLowerCase();
+  switch (sector) {
+    case 'News, journalism & politics':
+      return (
+        c.includes('news media') ||
+        /newspapers?/.test(c) ||
+        c.includes('print media') ||
+        /politics|government|social issues/.test(c) ||
+        /websites\|\|news\b/.test(c) ||
+        /tv\|\|[^|]*news/.test(c) ||
+        /radio\|\|[^|]*news/.test(c) ||
+        /podcasts\|\|[^|]*news/.test(c) ||
+        /podcasts\|\|[^|]*politics/.test(c)
+      );
+    case 'Sports':
+      return primary.startsWith('sports');
+    case 'Music, arts & entertainment':
+      return /music|art\s*\/\s*artists|performing arts|film\s*\/\s*tv|entertainment|comedy|movies|streaming|\btv\b/.test(c);
+    case 'Business & finance':
+      return c.includes('business');
+    case 'Health, science & academia':
+      return /health|wellness|medical|science|academics/.test(c);
+    case 'Lifestyle & culture':
+      return /fashion|beauty|food|travel|home|family|religion|animals/.test(c);
+    case 'Digital creators':
+      return /youtube|social media|internet related|bloggers/.test(c);
+    default:
+      return false;
+  }
+}
+
+function matchesAccountType(t: NormalizedTarget, type: string): boolean {
+  const tags = t.rawMediaTags;
+  const cat = t.category;
+  const rawCat = t.rawCategory;
+  switch (type) {
+    case 'Journalists':
+      return /journalist/i.test(tags);
+    case 'News outlets':
+      return /newspaper|tv_news|news_website/i.test(tags);
+    case 'Politicians & officials':
+      return /politician/i.test(tags);
+    case 'Activists':
+      return /activist/i.test(tags);
+    case 'Authors':
+      return cat === 'Authors' || /political_author/i.test(tags);
+    case 'Podcasters & radio hosts':
+      return (
+        cat === 'Podcasts' ||
+        cat === 'Radio' ||
+        /podcast_political|radio_political/i.test(tags)
+      );
+    case 'Athletes':
+      return /^sports/i.test(cat) && !/journalist broadcaster/i.test(rawCat);
+    case 'Musicians & artists':
+      return cat === 'Music';
+    case 'TV & film personalities':
+      return ['Film / Tv', 'Tv', 'Entertainment', 'Movies', 'Comedy'].includes(cat);
+    case 'Business leaders':
+      return cat === 'Business';
+    case 'Academics & experts':
+      return cat === 'Academics' || cat === 'Science / Technology';
+    case 'Influencers & creators':
+      return ['Youtube Channels', 'Social Media / Video', 'Internet Related', 'Bloggers'].includes(cat);
+    default:
+      return false;
+  }
+}
+
+function reachFor(t: NormalizedTarget, audience: SearchFilters['targetAudience']): number {
+  switch (audience) {
+    case 'public':
+      return t.genPopReach;
+    case 'dem':
+      return t.demReach;
+    case 'rep':
+      return t.repReach;
+    case 'bpi':
+    default:
+      return t.panelReach;
+  }
+}
+
 export function filterAndRank(filters: SearchFilters): RankedTarget[] {
   let pool = getDataset();
 
-  if (filters.sector === 'news') pool = pool.filter((t) => t.sector === 'news');
-  else if (filters.sector === 'culture') pool = pool.filter((t) => t.sector === 'culture');
-
-  const pills = filters.subSectors.filter((p) => p !== 'All');
-  if (pills.length > 0 && (filters.sector === 'news' || filters.sector === 'culture')) {
-    pool = pool.filter((t) =>
-      pills.some((p) =>
-        matchesSubSector(filters.sector as 'news' | 'culture', p, t.category, t.rawMediaTags),
-      ),
-    );
+  const sectorsActive = filters.sectors.filter((s) => s !== SECTOR_ALL);
+  if (sectorsActive.length > 0) {
+    pool = pool.filter((t) => sectorsActive.some((s) => matchesSector(t, s)));
   }
 
-  const reachOf = (t: NormalizedTarget) =>
-    filters.audienceAlignment === 'dem'
-      ? t.demReach
-      : filters.audienceAlignment === 'rep'
-        ? t.repReach
-        : t.panelReach;
+  const typesActive = filters.accountTypes.filter((t) => t !== TYPE_ALL);
+  if (typesActive.length > 0) {
+    pool = pool.filter((t) => typesActive.some((type) => matchesAccountType(t, type)));
+  }
 
-  const scored = pool.flatMap<RankedTarget>((t) => {
-    const reach = reachOf(t);
-    let score: number;
-    switch (filters.successMetric) {
-      case 'visibility':
-        score = reach;
-        break;
-      case 'trust':
-        score = reach - t.genPopReach;
-        break;
-      case 'insider':
-        if (t.genPopReach >= 10) return [];
-        score = reach - t.genPopReach;
-        break;
-      default:
-        score = reach;
-    }
-    return [{ ...t, score, rank: 0 }];
-  });
+  const scored: RankedTarget[] = pool.map((t) => ({
+    ...t,
+    score: reachFor(t, filters.targetAudience),
+    rank: 0,
+  }));
 
   scored.sort((a, b) => b.score - a.score);
   scored.forEach((t, i) => {

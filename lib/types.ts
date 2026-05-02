@@ -13,10 +13,9 @@ export interface Target {
 
 export interface SearchFilters {
   campaignBrief: string;
-  audienceAlignment: '' | 'no' | 'dem' | 'rep';
-  sector: '' | 'all' | 'news' | 'culture';
-  subSectors: string[];
-  successMetric: '' | 'visibility' | 'trust' | 'insider';
+  sectors: string[];
+  accountTypes: string[];
+  targetAudience: '' | 'bpi' | 'public' | 'dem' | 'rep';
 }
 
 export interface InsightSummary {
